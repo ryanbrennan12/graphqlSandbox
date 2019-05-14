@@ -83,7 +83,9 @@ const RootQuery = new GraphQLObjectType({
       //arguments required for this root query
       resolve(parentValue, args) {
         //return raw json here and graphql takes care of the rest
+        //resolve must return data that represents a user object
         return _.find(users, { id: args.id });
+        //need to make an HTTP request in here and return the promise that it generates
       }
     }
   }
@@ -105,3 +107,5 @@ module.exports = new GraphQLSchema({
 //. . . where passed into the ORIGINAL QUERY
 
 //our browser is running graphiql and it is sending a graphql query to our express server
+
+//ship it back to our graphical client
