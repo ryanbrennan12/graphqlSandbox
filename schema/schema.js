@@ -36,6 +36,7 @@ const {
 //
 //1) create a new object that instructs graphQL about what a USER OBJECT looks like
 // ..like what properties it is supposed to have.
+
 //TWO required properties
 // 1) name: name property will always be a string that describes the type we are defining
 // this will usually be equal to whatever we call this type
@@ -51,14 +52,28 @@ const CompanyType = new GraphQLObjectType({
     description: { type: GraphQLString },
   }
 })
+//now we want to associate  this TYPE with the user.
 const UserType = new GraphQLObjectType({
   name: 'User',
   fields: {
     id: { type: GraphQLString },
     firstName: { type: GraphQLString },
     age: { type: GraphQLInt },
+    company: {
+      type: CompanyType,
+      resolve(parentValue, args) {
+        //parent value is the node on the graph where the query is coming from
+
+       return axios.get(`http://localhost:3000/companies/${parentValue.companyId}`)
+       .then(res => res.data)
+      }
+    }
   }
 });
+// USER MODEL COMES FROM JSON SERVER- IS IS REAL STUFF it is INCOMING DATA
+// USER TYPE IS WHAT IS DEFINED IN OUT USER FILE
+//we are going to use resolve function to populate company property
+
 //now we instructed GQL that every single user will have an id, FN, and age
 //we have to use built in types like GraphQLString
 
@@ -82,7 +97,6 @@ const UserType = new GraphQLObjectType({
 //   }
 // }
 
-
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
@@ -93,14 +107,24 @@ const RootQuery = new GraphQLObjectType({
       resolve(parentValue, args) {
         //return raw json here and graphql takes care of the rest/
         //resolve must return data that represents a user object
+        //resolve(null, { id: 23 })
         return axios.get(`http://localhost:3000/users/${args.id}`)
-        .then(resp => resp.data)
+        .then(resp => resp.data);
 
         //need to make an HTTP request in here and return the promise that it generates
+      }
+    },
+    company: {
+      type: CompanyType,
+      args: { id: { type: GraphQLString }},
+      resolve(parentValue, args) {
+        return axios.get(`http://localhost:3000/companies/${args.id}`)
+        .then(resp => resp.data);
       }
     }
   }
 });
+//EACH EDGE ON THE GRAPH CAN BE THOUGH AS A RESOLVE FUNCTION- POINTS TO AN ASSOCIATION
 //GraphQLSchema takes in a root query and returns a GraphQLSchema instance
 //now want to export newly created GraphQLSchema
 //i'll pass to it an object that has
