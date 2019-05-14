@@ -16,7 +16,7 @@
 
 const graphql = require('graphql');
 //"from this object we are going to be destructuring a lot of different properties"
-const _ = require('lodash');
+const axios = require('axios');
 //destructuring from the graphQL library
 const {
   GraphQLObjectType,
@@ -26,10 +26,10 @@ const {
   //GraphQLSchema takes in a root query and returns a GraphQLSchema  instance
 } = graphql;
 
-const users = [
-  { id: '23', firstName: 'Bill', age: 20 },
-  { id: '47', firstName: 'Ryan', age: 77 }
-]
+// const users = [
+//   { id: '23', firstName: 'Bill', age: 20 },
+//   { id: '47', firstName: 'Ryan', age: 77 }
+// ]
 //So we are going to use GraphQLObjectType to instruct
 // . . . graphql about the presence of a USER in our application
 //..like the idea of a user; a user that has an id and a first name property
@@ -42,6 +42,15 @@ const users = [
 // 2) fields property which is an object. MOST IMPORTANT property.  It is what tells
 //...graphql about all the different properties that a USER HAS
 //the keys to this object are the names of the properties the user has
+
+const CompanyType = new GraphQLObjectType({
+  name: 'Company',
+  fields: {
+    id: { type: GraphQLString },
+    name: { type: GraphQLString },
+    description: { type: GraphQLString },
+  }
+})
 const UserType = new GraphQLObjectType({
   name: 'User',
   fields: {
@@ -79,12 +88,14 @@ const RootQuery = new GraphQLObjectType({
   fields: {
     user: {
       type: UserType, // 2) then I give you this
-      args: { id: { type: GraphQLString } }, // 1) if you give me this
+      args: { id: { type: GraphQLString }}, // 1) if you give me this
       //arguments required for this root query
       resolve(parentValue, args) {
-        //return raw json here and graphql takes care of the rest
+        //return raw json here and graphql takes care of the rest/
         //resolve must return data that represents a user object
-        return _.find(users, { id: args.id });
+        return axios.get(`http://localhost:3000/users/${args.id}`)
+        .then(resp => resp.data)
+
         //need to make an HTTP request in here and return the promise that it generates
       }
     }
